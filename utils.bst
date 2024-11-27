@@ -14,9 +14,9 @@ INTEGERS { a b }
 
 FUNCTION {default.self.tokens} { ":-,.!?'" }
 
-FUNCTION {latin1.upper} { "ÀÁÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ" }
+FUNCTION {latin.upper} { "ÀÁÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸĀĂĄĆĈĊČĎĐĒĔĖĘĚĜĞĠĢĤĦĨĪĬĮİIĴĶĹĻĽĿŁŃŅŇŊŌŎŐŒŔŖŘŚŜŞŠŢŤŦŨŪŬŮŰŲŴŶŸŹŻŽ" }
 
-FUNCTION {latin1.lower} { "àáãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ" }
+FUNCTION {latin.lower} { "àáãäåæçèéêëìíîïðñòóôõöøùúûüýþÿāăąćĉċčďđēĕėęěĝğġģĥħĩīĭįiıĵķĺļľŀłńņňŋōŏőœŕŗřśŝşšţťŧũūŭůűųŵŷÿźżž" }
 
 FUNCTION {utf8.bytes} { "¿þĽżƻǺȹɸʷ˶̵ʹγϲбѰүӮԭլ֫תة٨ڧۦܥݤޣߢáàßÞÝÜÛÚÙØ×ÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀက 　䀀倀怀瀀耀退ꀀ뀀쀀퀀𐀀񐀀򐀀󐀀􀀀" }
 
@@ -286,11 +286,7 @@ FUNCTION {is.upper}
 {
   duplicate$ is.upper.ascii
     { pop$ #1 }
-    {
-      char.to.unicode duplicate$
-      #192 swap$ #214 swap$ is.int.in.range swap$
-      #216 swap$ #222 swap$ is.int.in.range or
-    }
+    { latin.upper swap$ is.char.in.str }
   if$
 }
 
@@ -325,11 +321,7 @@ FUNCTION {is.lower}
 {
   duplicate$ is.lower.ascii
     { pop$ #1 }
-    {
-      char.to.unicode duplicate$
-      #223 swap$ #246 swap$ is.int.in.range swap$
-      #248 swap$ #255 swap$ is.int.in.range or
-    }
+    { latin.lower swap$ is.char.in.str }
   if$
 }
 
@@ -480,7 +472,7 @@ FUNCTION {to.lower}
 {
   duplicate$ is.upper.ascii
     { chr.to.int$ #32 + int.to.chr$ }
-    { latin1.lower swap$ latin1.upper swap$ map.char }
+    { latin.lower swap$ latin.upper swap$ map.char }
   if$
 }
 
@@ -490,7 +482,7 @@ FUNCTION {to.upper}
 {
   duplicate$ is.lower.ascii
     { chr.to.int$ #32 - int.to.chr$ }
-    { latin1.upper swap$ latin1.lower swap$ map.char }
+    { latin.upper swap$ latin.lower swap$ map.char }
   if$
 }
 
