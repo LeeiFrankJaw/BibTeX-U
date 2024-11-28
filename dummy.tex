@@ -1,0 +1,27 @@
+\documentclass{ctexart}
+
+\setmainfont{Palatino Linotype}
+
+\setCJKmainfont{Songti SC}[
+  BoldFont = Heiti SC,
+  ItalicFont = STFangsong
+]
+\setCJKfamilyfont{zhkai}{KaiTi_GB2312}
+
+\usepackage[math-style=TeX]{unicode-math}
+\setmathfont{TeX Gyre Pagella Math}
+
+\DeclareEmphSequence{\kaishu}
+
+\usepackage{gbt7714}
+
+\begin{document}
+\nocite{*}
+
+\bibliographystyle{gbt7714-numerical}
+\bibliography{refs}
+\end{document}
+
+% Local Variables:
+% TeX-engine: luatex
+% End:
