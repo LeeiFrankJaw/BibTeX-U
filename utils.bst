@@ -6,7 +6,10 @@ INTEGERS {
   % inter.token.state
 }
 
-STRINGS { current.test }
+STRINGS {
+  current.test
+  page.range.separator
+}
 
 STRINGS { s t }
 
@@ -745,7 +748,7 @@ FUNCTION {self.tokens}
 {
   #0 =
     'default.self.tokens
-    'range.separators
+    { range.separators "," * }
   if$
 }
 
@@ -927,6 +930,25 @@ FUNCTION {all.to.collation}
     { split.first.char.from.str to.collation swap$ 't := * t }
   while$
   *
+}
+
+% str -> str
+% variable used: s, t, b
+FUNCTION {normalize.page.range}
+{
+  "" swap$
+  { duplicate$ empty$ not }
+    {
+      #1 tokenize.by
+      #1 skip.inter.token.chars.by 't :=
+      empty$
+        { "" }
+        { page.range.separator }
+      if$
+      * * t
+    }
+  while$
+  pop$
 }
 
 % ====================================
@@ -1180,11 +1202,17 @@ FUNCTION {run.tests}
   "Atkinson, J B" smart.upper.case "ATKINSON, J B" assert.str
   "Demtr{" #92 int.to.chr$ * quote$ * "o}der, W" * smart.upper.case
   "DEMTR{" #92 int.to.chr$ * quote$ * "O}DER, W" * assert.str
+
+  "normalize.page.range" 'current.test :=
+
+  "123-137" normalize.page.range "123-137" assert.str
+  "123---137,145,177--178" normalize.page.range "123-137,145,177-178" assert.str
 }
 
 FUNCTION {init.consts}
 {
   #1 'lowercase.word.after.colon :=
+  "-" 'page.range.separator :=
   % #0 'token.state :=
   % #0 'inter.token.state :=
   % "{\relax { foo} baz}" "u" change.case$ top$
@@ -1198,20 +1226,20 @@ FUNCTION {init.consts}
   % "{" text.length$ top$
   % "Perturbations in the A Sigma+ state of Na$_2$" smart.sentence.case top$
   % "" skip.inter.token.command stack$
-  "200 \LaTeX \ae Foo{bar}{\'o \ae}{{\'o}}" "u" change.case$ top$
-  "200 \LaTeX \ae Foo{bar}{\'o \ae}{{\'o}}" smart.upper.case top$
+  % "200 \LaTeX \ae Foo{bar}{\'o \ae}{{\'o}}" "u" change.case$ top$
+  % "200 \LaTeX \ae Foo{bar}{\'o \ae}{{\'o}}" smart.upper.case top$
   % "{doo{\cs D}{f}}  " purify$ top$
   % "{ae foo}" "u" change.case$ top$
   % "{Ło}+" is.in.title.case top$
   % "'" is.tex.str.in.title.case top$
-  "{\csname \ae \endcsname}" "u" change.case$ top$
-  "{\csname \ae \endcsname}" smart.upper.case top$
+  % "{\csname \ae \endcsname}" "u" change.case$ top$
+  % "{\csname \ae \endcsname}" smart.upper.case top$
   % "\AE" command.to.lower top$
   % "\v" is.special.char.command top$
   % "{\v {C}a{d{e}}}" tex.to.lower top$
-  "{C}aro" is.in.title.case top$
-  "Caro{foo}" is.tex.str.in.title.case top$
-  "{C}aro" lower.token.if.in.title.case top$
+  % "{C}aro" is.in.title.case top$
+  % "Caro{foo}" is.tex.str.in.title.case top$
+  % "{C}aro" lower.token.if.in.title.case top$
   % "---------" top$
 }
 
