@@ -176,7 +176,7 @@ FUNCTION {get.first.char.from.str}
 % str -> rest: str, texchar
 FUNCTION {split.first.tex.char.from.str}
 {
-  duplicate$ #1 #2 substring$ "{" #92 int.to.chr$ * =
+  duplicate$ #1 #1 substring$ "{" =
     {
       split.first.char.from.str swap$
       find.match.brace swap$
@@ -296,7 +296,6 @@ FUNCTION {is.upper}
 FUNCTION {is.all.upper}
 {
   #1 swap$
-  purify$
   { duplicate$ "" = not }
     {
       split.first.char.from.str is.upper
@@ -352,7 +351,6 @@ FUNCTION {is.symbol.ascii}
 FUNCTION {is.all.lower}
 {
   #1 swap$
-  purify$
   { duplicate$ "" = not }
     {
       split.first.char.from.str is.lower
@@ -368,7 +366,6 @@ FUNCTION {is.all.lower}
 % variable used: b
 FUNCTION {is.in.title.case}
 {
-  purify$
   duplicate$ "" =
     { pop$ #0 }
     {
@@ -380,6 +377,42 @@ FUNCTION {is.in.title.case}
           if$
         }
         { pop$ #0 }
+      if$
+    }
+  if$
+}
+
+% str -> bool
+% variable used: b
+FUNCTION {is.tex.str.in.title.case}
+{
+  duplicate$ "" =
+    { pop$ #0 }
+    {
+      split.first.tex.char.from.str purify$
+      duplicate$ "" =
+        { pop$ pop$ #0 }
+        {
+          split.first.char.from.str is.upper
+            {
+              duplicate$ is.all.lower
+                {
+                  empty$
+                    {
+                      duplicate$ "" =
+                        { pop$ #0 }
+                        'is.all.lower
+                      if$
+                    }
+                    'is.all.lower
+                  if$
+                }
+                { pop$ pop$ #0 }
+              if$
+            }
+            { pop$ pop$ #0}
+          if$
+        }
       if$
     }
   if$
@@ -443,6 +476,26 @@ FUNCTION {skip.inter.token.command}
   if$
 }
 
+% cmdstr -> cmdstr
+FUNCTION {is.special.char.command}
+{
+  #2 global.max$ substring$ skip.inter.token.command
+
+  empty$
+    'skip$
+    { "is.special.char.command: cmdstr has extra components!" warning$ }
+  if$
+
+  duplicate$ duplicate$ duplicate$ duplicate$ duplicate$ duplicate$
+  "oOlLij" swap$ is.char.in.str
+  swap$ "oe" = or
+  swap$ "OE" = or
+  swap$ "ae" = or
+  swap$ "AE" = or
+  swap$ "aa" = or
+  swap$ "AA" = or
+}
+
 % str, str, char -> char
 % variable used: t
 FUNCTION {map.char}
@@ -497,22 +550,55 @@ FUNCTION {all.to.lower}
   *
 }
 
-% texchar -> str
+% texchar -> texchar
+% variables used: t, b
+FUNCTION {command.to.lower}
+{
+  duplicate$ "" =
+    { "command.to.lower: Empty string is not a texchar!" warning$ }
+    {
+      duplicate$ #1 #1 substring$ #92 int.to.chr$ =
+        {
+          duplicate$ is.special.char.command
+            'all.to.lower
+            'skip$
+          if$
+        }
+        'to.lower
+      if$
+    }
+  if$
+}
+
+% texchar -> texchar
 % variables used: t, b
 FUNCTION {tex.to.lower}
 {
-  "" swap$
-  { duplicate$ "" = not }
+  duplicate$ #1 #2 substring$ "{" #92 int.to.chr$ * =
     {
-      split.first.char.from.str
-      duplicate$ #92 int.to.chr$ =
-        { swap$ skip.inter.token.command 't := * t }
-        { to.lower swap$ }
-      if$
-      't := * t
+      "" swap$
+      { duplicate$ "" = not }
+        {
+          split.first.char.from.str
+          duplicate$ #92 int.to.chr$ =
+            {
+              swap$ skip.inter.token.command 't := * t
+              swap$ command.to.lower
+            }
+            'to.lower
+          if$
+          swap$ 't := * t
+        }
+      while$
+      pop$
     }
-  while$
-  pop$
+    {
+      duplicate$ #1 #1 substring$ "{" =
+        { split.first.char.from.str swap$ find.match.brace pop$ }
+        'command.to.lower
+      if$
+    }
+  if$
 }
 
 % str -> str
@@ -526,48 +612,62 @@ FUNCTION {all.to.upper}
   *
 }
 
-% texchar -> str
+% texchar -> texchar
+% variables used: t, b
+FUNCTION {command.to.upper}
+{
+  duplicate$ "" =
+    { "command.to.lower: Empty string is not a texchar!" warning$ }
+    {
+      duplicate$ #1 #1 substring$ #92 int.to.chr$ =
+        {
+           duplicate$ is.special.char.command
+             'all.to.upper
+             'skip$
+           if$
+        }
+        'to.upper
+      if$
+    }
+  if$
+}
+
+% texchar -> texchar
 % variables used: t, b
 FUNCTION {tex.to.upper}
 {
-  "" swap$
-  { duplicate$ "" = not }
+  duplicate$ #1 #2 substring$ "{" #92 int.to.chr$ * =
     {
-      split.first.char.from.str
-      duplicate$ #92 int.to.chr$ =
-        { swap$ skip.inter.token.command 't := * t }
-        { to.upper swap$ }
-      if$
-      't := * t
+      "" swap$
+      { duplicate$ "" = not }
+      {
+        split.first.char.from.str
+        duplicate$ #92 int.to.chr$ =
+          {
+            swap$ skip.inter.token.command 't := * t
+            swap$ command.to.upper
+          }
+          'to.upper
+        if$
+        swap$ 't := * t
+      }
+      while$
+      pop$
     }
-  while$
-  pop$
-}
-
-% str -> str
-% variables used: b
-FUNCTION {all.to.upper.bak}
-{
-  t swap$ s swap$
-  "" swap$
-  { duplicate$ empty$ not }
-    { split.first.char.from.str
-      duplicate$ "{" =
-        { swap$ find.match.brace }
-        { to.upper swap$ }
+    {
+      duplicate$ #1 #1 substring$ "{" =
+        { split.first.char.from.str swap$ find.match.brace pop$ }
+        'command.to.upper
       if$
-      't := * t }
-  while$
-  *
-  swap$ 's :=
-  swap$ 't :=
+    }
+  if$
 }
 
-% str -> str
+% texstr -> texstr
 % variable used: t, b
 FUNCTION {lower.token.if.in.title.case}
 {
-  duplicate$ is.in.title.case
+  duplicate$ is.tex.str.in.title.case
     { split.first.tex.char.from.str tex.to.lower swap$ * }
     'skip$
   if$
@@ -646,34 +746,6 @@ FUNCTION {self.tokens}
   #0 =
     'default.self.tokens
     'range.separators
-  if$
-}
-
-% str, int -> token: str, rest: str
-% variables used: s, t, b
-FUNCTION {tokenize.by.bak}
-{
-  'b :=
-  's :=
-
-  b self.tokens s get.first.char.from.str is.char.in.str
-    { s split.first.char.from.str swap$ }
-    {
-      ""
-      { " " b self.tokens * s get.first.char.from.str is.char.in.str
-        s empty$ or
-        not }
-        {
-          s split.first.char.from.str
-          duplicate$ "{" =
-            { swap$ find.match.brace }
-            'swap$
-          if$
-          's := *
-        }
-      while$
-      s
-    }
   if$
 }
 
@@ -776,17 +848,46 @@ FUNCTION {smart.upper.case}
     {
       tokenize swap$
       duplicate$ #1 #1 substring$ #92 int.to.chr$ =
-        'skip$
+        'command.to.upper
         {
           "" swap$
           { duplicate$ "" = not }
             {
-              split.first.tex.char.from.str
-              duplicate$ "{" =
-                { swap$ find.match.brace }
-                { tex.to.upper swap$ }
-              if$
-              't := * t
+              split.first.tex.char.from.str tex.to.upper
+              swap$ 't := * t
+            }
+          while$
+          pop$
+        }
+      if$
+      swap$ 't := * t
+      skip.inter.token.chars 't := * t
+    }
+  while$
+  pop$
+
+  swap$ 't :=
+  swap$ 's :=
+}
+
+% str -> str
+% variables used: s, t, b
+FUNCTION {smart.lower.case}
+{
+  s swap$ t swap$
+
+  "" swap$
+  { duplicate$ "" = not }
+    {
+      tokenize swap$
+      duplicate$ #1 #1 substring$ #92 int.to.chr$ =
+        'command.to.lower
+        {
+          "" swap$
+          { duplicate$ "" = not }
+            {
+              split.first.tex.char.from.str tex.to.lower
+              swap$ 't := * t
             }
           while$
           pop$
@@ -951,18 +1052,26 @@ FUNCTION {run.tests}
   "FOOÉ" is.all.upper #1 assert.int
   "FOOé" is.all.upper #0 assert.int
   "{\relax { Foo} baz}" is.all.upper #0 assert.int
-  "{\relax { FOO} BAZ}" is.all.upper #1 assert.int
+  "{\relax { FOO} BAZ}" is.all.upper #0 assert.int
 
   "is.all.lower" 'current.test :=
 
-  "{\relax { foo} baz}" is.all.lower #1 assert.int
+  "{\relax { foo} baz}" is.all.lower #0 assert.int
   "fooé" is.all.lower #1 assert.int
 
   "is.in.title.case" 'current.test :=
 
   "foobar" is.in.title.case #0 assert.int
   "Foobar" is.in.title.case #1 assert.int
-  "{\v C}oobar" is.in.title.case #1 assert.int
+  "{\v C}oobar" is.in.title.case #0 assert.int
+  "{\v C}oobar+" is.in.title.case #0 assert.int
+
+  "is.tex.str.in.title.case" 'current.test :=
+
+  "foobar" is.tex.str.in.title.case #0 assert.int
+  "Foobar" is.tex.str.in.title.case #1 assert.int
+  "{\v C}oobar" is.tex.str.in.title.case #1 assert.int
+  "{\v C}oobar+" is.tex.str.in.title.case #0 assert.int
 
   "skip.inter.token.chars.by" 'current.test :=
 
@@ -1061,8 +1170,8 @@ FUNCTION {run.tests}
   "Perturbations in the A {$^1\Sigma_u^+$} state of Na$_2$" assert.str
   "Perturbations in the A $\Sigma_u^+$ state of Na$_2$" smart.sentence.case
   "Perturbations in the A $\Sigma_u^+$ state of Na$_2$" assert.str
-  % "Perturbations in the A Mega{sigma${u}^+$} state of Na$_2$" smart.sentence.case
-  % "Perturbations in the A Mega{sigma{u}+} state of Na$_2$" assert.str
+  "Perturbations in the A Mega{sigma${u}^+$} state of Na$_2$" smart.sentence.case
+  "Perturbations in the A Mega{sigma${u}^+$} state of Na$_2$" assert.str
 
   "smart.upper.case" 'current.test :=
 
@@ -1089,6 +1198,21 @@ FUNCTION {init.consts}
   % "{" text.length$ top$
   % "Perturbations in the A Sigma+ state of Na$_2$" smart.sentence.case top$
   % "" skip.inter.token.command stack$
+  "200 \LaTeX \ae Foo{bar}{\'o \ae}{{\'o}}" "u" change.case$ top$
+  "200 \LaTeX \ae Foo{bar}{\'o \ae}{{\'o}}" smart.upper.case top$
+  % "{doo{\cs D}{f}}  " purify$ top$
+  % "{ae foo}" "u" change.case$ top$
+  % "{Ło}+" is.in.title.case top$
+  % "'" is.tex.str.in.title.case top$
+  "{\csname \ae \endcsname}" "u" change.case$ top$
+  "{\csname \ae \endcsname}" smart.upper.case top$
+  % "\AE" command.to.lower top$
+  % "\v" is.special.char.command top$
+  % "{\v {C}a{d{e}}}" tex.to.lower top$
+  "{C}aro" is.in.title.case top$
+  "Caro{foo}" is.tex.str.in.title.case top$
+  "{C}aro" lower.token.if.in.title.case top$
+  % "---------" top$
 }
 
 READ
