@@ -1222,12 +1222,12 @@ FUNCTION {init.consts}
   % "\Foobar200 haha" tokenize stack$
   % "" is.symbol.ascii top$
   % "Perturbations in the A {$^1\Sigma_u^+$} state of Na$_2$" smart.sentence.case top$
-  % "Perturbations in the A $\Sigma_u^+$ state of Na$_2$" smart.sentence.case top$
+  % "Perturbations in the A $\Sigma_u^+$ state of Na$_2$. {\H {C}a{d{e}}}o" smart.sentence.case top$
   % "{" text.length$ top$
   % "Perturbations in the A Sigma+ state of Na$_2$" smart.sentence.case top$
   % "" skip.inter.token.command stack$
   % "200 \LaTeX \ae Foo{bar}{\'o \ae}{{\'o}}" "u" change.case$ top$
-  % "200 \LaTeX \ae Foo{bar}{\'o \ae}{{\'o}}" smart.upper.case top$
+  % "200 \LaTeX \ae Foö{bar}{\'o \ae}{{\'o}}" smart.upper.case top$
   % "{doo{\cs D}{f}}  " purify$ top$
   % "{ae foo}" "u" change.case$ top$
   % "{Ło}+" is.in.title.case top$

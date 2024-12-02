@@ -728,7 +728,7 @@ FUNCTION {is.in.inter.token.chars}
     { pop$ " " = }
     {
       #1 =
-        { range.separators swap$ is.char.in.str }
+        { " " range.separators * swap$ is.char.in.str }
         'is.letter.ascii
       if$
     }
@@ -973,19 +973,19 @@ FUNCTION {tokenize.by}
             {
               pop$ pop$ "" s
               { duplicate$ "" = not }
-              {
-                split.first.char.from.str
-                duplicate$ "\ " b self.tokens * swap$ is.char.in.str
-                  { pop$ pop$ "" }
-                  {
-                    duplicate$ "{" =
-                      { swap$ find.match.brace }
-                      'swap$
-                    if$
-                    's := * s
-                  }
-                if$
-              }
+                {
+                  split.first.char.from.str
+                  duplicate$ "\ " b self.tokens * swap$ is.char.in.str
+                    { pop$ pop$ "" }
+                    {
+                      duplicate$ "{" =
+                        { swap$ find.match.brace }
+                        'swap$
+                      if$
+                      's := * s
+                    }
+                  if$
+                }
               while$
               pop$ s
             }
@@ -1217,7 +1217,7 @@ FUNCTION {format.name}
       name.lang lang.en =
         { t #1 "{vv~}{ll}{ f{~}}" format.name$
           uppercase.name
-            { "u" change.case$ }
+            'smart.upper.case
             'skip$
           if$
           t #1 "{, jj}" format.name$ *
@@ -2010,29 +2010,23 @@ FUNCTION {normalize.page.range}
 {
   "" swap$
   { duplicate$ empty$ not }
-  {
-    split.first.char.from.str
-    duplicate$ range.separators swap$ is.char.in.str
-      {
-        { pop$ split.first.char.from.str
-          duplicate$ range.separators swap$ is.char.in.str }
-          'skip$
-        while$
-        page.range.separator swap$ *
-      }
-      'skip$
-    if$
-    swap$ 't := * t
-  }
+    {
+      #1 skip.inter.token.chars.by 't :=
+      empty$
+        { "" }
+        'page.range.separator
+      if$
+      * t
+      #1 tokenize.by 't :=
+      * t
+    }
   while$
   pop$
 }
 
 FUNCTION {format.pages}
-{ pages empty$
-    { "" }
-    { pages normalize.page.range }
-  if$
+{
+  pages normalize.page.range
 }
 
 FUNCTION {format.extracted.pages}
